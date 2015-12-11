@@ -30,7 +30,7 @@ for folder in $DIR; do
       else
         echo "Unknown CVS type"
       fi
-      [ -n "$lastrev" -a -n "$lastdate" ] && printf "%s Rev: %-10s Date: %s\n" "$type" "$lastrev" "$lastdate"
+      [ -n "$type" ] && if [ "$type" == "SVN" ]; then x="10"; else x="-10"; fi; printf "%s Rev: %${x}s Date: %s\n" "$type" "$lastrev" "$lastdate"
       [ -n "$status" ] && echo "$status"
     done
   popd > /dev/null
