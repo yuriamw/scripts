@@ -1,5 +1,7 @@
 #! /bin/bash -e
 
+export LC_ALL=C
+
 DIR=.
 if [ 0 -lt $# ]; then
     DIR="$@"
@@ -30,7 +32,7 @@ for folder in $DIR; do
       else
         echo "Unknown CVS type"
       fi
-      [ -n "$type" ] && if [ "$type" == "SVN" ]; then x="10"; else x="-10"; fi; printf "%s Rev: %${x}s Date: %s\n" "$type" "$lastrev" "$lastdate"
+      [ -n "$type" ] && if [ "$type" == "SVN" ]; then x="10"; c="revision"; else x="-10"; c="commit  "; fi; printf "%s ${c}: %${x}s Date: %s\n" "$type" "$lastrev" "$lastdate"
       [ -n "$status" ] && echo "$status"
     done
   popd > /dev/null
