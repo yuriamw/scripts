@@ -4,5 +4,5 @@ Version=1.0
 Terminal=false
 Type=Application
 Name=Google Chrome Sling
-Exec=/opt/google/chrome/google-chrome --user-data-dir=~/.config/google-chrome-sling --window-size=768,850 --window-position=1150,20 http://slingplayer.slingbox.com/embedded/slingplayer.php
+Exec=/opt/google/chrome/google-chrome --user-data-dir=.config/google-chrome-sling --window-size=768,850 --window-position=1150,20 http://slingplayer.slingbox.com/embedded/slingplayer.php
 Icon=sling.png
