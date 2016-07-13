@@ -11,7 +11,7 @@ path=/home/zodiac
 port=5000
 user=zodiac
 
-supported_outforms="powerup"
+supported_outforms="image powerup"
 
 DO_POWERUP=0
 
@@ -177,7 +177,22 @@ if [ $DO_POWERUP -eq 1 ]; then
   fi
 fi
 
-
+if [ $DO_IMAGE -eq 1 ]; then
+  PRJDIR=${PROJ_BASE}/native/output-images/${TARGET}
+  rm -rf ${WORKDIR}
+  mkdir -p ${WORKDIR}
+  sao_name=squashfs.sao
+  sao="$(ls $PRJDIR/${BUILD_TYPE}/*.sao | tail -n 1)"
+  [ -f "$sao" ] && cp -f $sao $WORKDIR/$sao_name
+  vmli_name=vmlinuz-initrd
+  vmli="$(ls $PRJDIR/${BUILD_TYPE}/*.${vmli_name} | tail -n 1)"
+  [ -f "$vmli" ] && cp -f $vmli $WORKDIR/$vmli_name
+  nfm_name=nfs_image-${BUILD_TYPE}.zip
+  nfm=$PRJDIR/$nfm_name
+  [ -f "$nfm" ] && cp -f $nfm $WORKDIR/$nfm_name
+  echo "scp to ${SRV}:${SRVDIR} ... "
+  scp ${SRVPORT} ${WORKDIR}/* ${SRV}:${SRVDIR}
+fi
 
 
 
