@@ -14,6 +14,7 @@ user=zodiac
 supported_outforms="image powerup"
 
 DO_POWERUP=0
+DO_IMAGE=0
 
 usage()
 {
