@@ -5,11 +5,13 @@ export LC_ALL=C
 defoutform=powerup
 basedir=.
 platform=
+cpu=mips
 buildtype=dev
 server=stlouis
 path=/home/zodiac
 port=5000
 user=zodiac
+skip=0
 
 supported_outforms="image powerup"
 
@@ -30,6 +32,8 @@ usage()
   echo "            Use DIR as a base directory to find build output products. Default is '$basedir'"
   echo "        -p PLATFORM,--platform=PLATFORM"
   echo "            Search for build products for PLATFORM"
+  echo "        -c CPU,--cpu=CPU"
+  echo "            Search for build products for CPU. Default is '$cpu'"
   echo "        -t BUILDTYPE,--build-type=BUILDTYPE"
   echo "            Search for BUILDTYPE build products. Default is '$buildtype'"
   echo "        -s SERVER,--server=SERVER"
@@ -40,6 +44,8 @@ usage()
   echo "            Upload build products to SERVER. Default is '$port'"
   echo "        -u USER,--user=USER"
   echo "            Use USER name for for scp auth. Default is '$user'"
+  echo "        --skip"
+  echo "            Do not upload files to the server."
 }
 
 check_outform()
@@ -53,8 +59,8 @@ check_outform()
   done
 }
 
-SHORT_OPTS="hb:p:t:s:a:r:u:f:"
-LONG_OPTS="help,base-dir:,platform:,build-type:,server:,path:,port,user:out-form:"
+SHORT_OPTS="hb:p:c:t:s:a:r:u:f:"
+LONG_OPTS="help,base-dir:,platform:,cpu:,build-type:,server:,path:,port,user:out-form:,skip"
 
 OPTIONS_LIST=$(getopt -n $(basename $0) -o "$SHORT_OPTS" -l "$LONG_OPTS" -- "$@")
 [ $? -eq 0 ] || exit 1
@@ -79,6 +85,10 @@ while [ -n "$1" ]; do
       shift
       platform="$1"
     ;;
+    -c|--cpu)
+      shift
+      cpu="$1"
+    ;;
     -t|--build-type)
       shift
       buildtype="$1"
@@ -99,6 +109,10 @@ while [ -n "$1" ]; do
       shift
       user="$1"
     ;;
+    --skip)
+      shift
+      skip=1
+    ;;
     --)
       break
     ;;
@@ -115,7 +129,7 @@ if [ -z "$platform" ]; then
   exit 1
 fi
 
-TARGET="$platform-mips-charter"
+TARGET="$platform-$cpu-charter"
 BUILD_TYPE=$buildtype
 
 WORKDIR=$(mktemp -d)
@@ -171,8 +185,13 @@ if [ $DO_POWERUP -eq 1 ]; then
       tar -jc usr symbols -f ${TAR}
     popd  > /dev/null
     echo "Done"
-    echo "scp to ${SRV}:${SRVDIR} ... "
-    scp ${SRVPORT} ${WORKDIR}/${TAR} ${SRV}:${SRVDIR}
+    if [ $skip -ne 1 ]; then
+      echo "scp to ${SRV}:${SRVDIR} ... "
+      scp ${SRVPORT} ${WORKDIR}/${TAR} ${SRV}:${SRVDIR}
+    else
+      echo "cp to current dir: $(pwd) ... "
+      cp ${WORKDIR}/${TAR} ./
+    fi
   else
     echo "Nothing to do for '$TARGET'"
   fi
@@ -191,8 +210,13 @@ if [ $DO_IMAGE -eq 1 ]; then
   nfm_name=nfs_image-${BUILD_TYPE}.zip
   nfm=$PRJDIR/$nfm_name
   [ -f "$nfm" ] && cp -f $nfm $WORKDIR/$nfm_name
-  echo "scp to ${SRV}:${SRVDIR} ... "
-  scp ${SRVPORT} ${WORKDIR}/* ${SRV}:${SRVDIR}
+  if [ $skip -ne 1 ]; then
+    echo "scp to ${SRV}:${SRVDIR} ... "
+    scp ${SRVPORT} ${WORKDIR}/* ${SRV}:${SRVDIR}
+  else
+    echo "cp to current dir: $(pwd) ... "
+    cp ${WORKDIR}/* ./
+  fi
 fi
 
 
