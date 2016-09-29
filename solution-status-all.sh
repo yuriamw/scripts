@@ -15,6 +15,7 @@ for folder in $DIR; do
       status=""
       lastrev=""
       lastdate=""
+      branch=""
       appmsg=$(printf "=== Status of %-32s " "$app")
       if [ -d $app/.svn ]; then
         pushd $app > /dev/null
@@ -27,6 +28,7 @@ for folder in $DIR; do
       elif [ -d $app/.git ]; then
         pushd $app > /dev/null
           type="GIT"
+          branch="$(git branch | sed -n -e 's/^\*.* //p')"
           status="$(git status --porcelain)"
           lastrev="$(git log -1 --pretty='%h')"
           lastdate="$(git log -1 --pretty='%ad' --date=iso)"
@@ -34,7 +36,8 @@ for folder in $DIR; do
         repo=1
       fi
       if [ $repo -eq 1 ]; then
-        [ -n "$type" ] && if [ "$type" == "SVN" ]; then x="10"; c="revision"; else x="-10"; c="commit  "; fi; printf "%s %s ${c}: %${x}s Date: %s\n" "$appmsg" "$type" "$lastrev" "$lastdate"
+        [ -n "$type" ] && if [ "$type" == "SVN" ]; then x="10"; c="revision"; else x="-10"; c="commit  "; fi
+        printf "%s %s ${c}: %${x}s %-24s Date: %s\n" "$appmsg" "$type" "$lastrev" "${branch}" "$lastdate"
         [ -n "$status" ] && echo "$status"
       fi
     done
