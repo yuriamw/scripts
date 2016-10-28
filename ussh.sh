@@ -61,7 +61,7 @@ done
 
 if [ -z "$user" ]; then
   case $host in
-    ctec)
+    ctec*)
       user=$defuser
     ;;
     stlouis)
