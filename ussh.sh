@@ -5,6 +5,9 @@ defuser=iurii.ovcharenko
 host=ctec
 
 user=
+ssh_proxy=
+
+ssh_proxy_default="127.0.0.1:8080:172.16.9.7:8080"
 
 usage()
 {
@@ -16,11 +19,13 @@ usage()
   echo "            Server host address to connect to. Default is '$host'"
   echo "        -p PORT,--port=PORT"
   echo "            Port to connect to on the remote host. Default is '$port'"
+  echo "        -L[SSH proxy option]"
+  echo "            Setup SSH proxy (man ssh). Default for ctec is '$ssh_proxy_default'"
   echo "        -u USER,--user=USER"
   echo "            User login. Default is '$defuser'"
 }
 
-SHORT_OPTS="hs:p:u:"
+SHORT_OPTS="hs:p:L::u:"
 LONG_OPTS="help,server:,port:,user:"
 
 OPTIONS_LIST=$(getopt -n $(basename $0) -o "$SHORT_OPTS" -l "$LONG_OPTS" -- "$@")
@@ -41,6 +46,14 @@ while [ -n "$1" ]; do
     -p|--port)
       shift
       port="$1"
+    ;;
+    -L)
+      shift
+      if [ -n "$1" ]; then
+        ssh_proxy="-L $1"
+      else
+        ssh_proxy="-L $ssh_proxy_default"
+      fi
     ;;
     -u|--user)
       shift
@@ -74,5 +87,5 @@ if [ -z "$user" ]; then
   esac
 fi
 
-ssh -p ${port} ${user}@${host}
+ssh -p ${port} ${ssh_proxy} ${user}@${host}
 # sudo su -l zodiac
