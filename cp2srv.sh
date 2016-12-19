@@ -201,12 +201,19 @@ if [ $DO_IMAGE -eq 1 ]; then
   PRJDIR=${PROJ_BASE}/native/output-images/${TARGET}
   rm -rf ${WORKDIR}
   mkdir -p ${WORKDIR}
+  # Technicolor SAO
   sao_name=squashfs.sao
   sao="$(ls $PRJDIR/${BUILD_TYPE}/*.sao | tail -n 1)"
   [ -f "$sao" ] && cp -f $sao $WORKDIR/$sao_name
+  # Humax vmlinuz-initrd
   vmli_name=vmlinuz-initrd
   vmli="$(ls $PRJDIR/${BUILD_TYPE}/*.${vmli_name} | tail -n 1)"
   [ -f "$vmli" ] && cp -f $vmli $WORKDIR/$vmli_name
+  # Arris PKG
+  pkg_name=vmlinuz-initrd.pkg
+  pkg="$(ls $PRJDIR/${BUILD_TYPE}/*.pkg | tail -n 1)"
+  [ -f "$pkg" ] && cp -f $pkg $WORKDIR/$pkg_name
+  # NFS
   nfm_name=nfs_image-${BUILD_TYPE}.zip
   nfm=$PRJDIR/$nfm_name
   [ -f "$nfm" ] && cp -f $nfm $WORKDIR/$nfm_name
