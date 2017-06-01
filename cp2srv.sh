@@ -203,16 +203,16 @@ if [ $DO_IMAGE -eq 1 ]; then
   mkdir -p ${WORKDIR}
   # Technicolor SAO
   sao_name=squashfs.sao
-  sao="$(ls $PRJDIR/${BUILD_TYPE}/*.sao | tail -n 1)"
-  [ -f "$sao" ] && cp -f $sao $WORKDIR/$sao_name
+  sao="$(ls $PRJDIR/${BUILD_TYPE}/*.sao | grep -v [0-9].sao | tail -n 1)"
+  if [ -f "$sao" ]; then echo "Copy $sao"; cp -f $sao $WORKDIR/$sao_name; fi
   # Humax vmlinuz-initrd
   vmli_name=vmlinuz-initrd
-  vmli="$(ls $PRJDIR/${BUILD_TYPE}/*.${vmli_name} | tail -n 1)"
-  [ -f "$vmli" ] && cp -f $vmli $WORKDIR/$vmli_name
+  vmli="$(ls $PRJDIR/${BUILD_TYPE}/*.${vmli_name} | grep -v [0-9].${vmli_name} | tail -n 1)"
+  if [ -f "$vmli" ]; then echo "Copy $vmli"; cp -f $vmli $WORKDIR/$vmli_name; fi
   # Arris PKG
   pkg_name=vmlinuz-initrd.pkg
-  pkg="$(ls $PRJDIR/${BUILD_TYPE}/*.pkg | tail -n 1)"
-  [ -f "$pkg" ] && cp -f $pkg $WORKDIR/$pkg_name
+  pkg="$(ls $PRJDIR/${BUILD_TYPE}/*.pkg | grep -v [0-9].pkg | tail -n 1)"
+  if [ -f "$pkg" ]; then echo "Copy $pkg"; cp -f $pkg $WORKDIR/$pkg_name; fi
   # NFS
   nfm_name=nfs_image-${BUILD_TYPE}.zip
   nfm=$PRJDIR/$nfm_name
