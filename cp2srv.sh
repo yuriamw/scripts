@@ -2,16 +2,17 @@
 
 export LC_ALL=C
 
-defoutform=powerup
+defoutform=image
 basedir=.
 platform=
-cpu=mips
+cpu=arm
 buildtype=dev
-server=stlouis
+server=ctec
 path=/home/zodiac
-port=5000
+port=22
 user=zodiac
 skip=0
+withdirs=0
 
 supported_outforms="image powerup"
 
@@ -44,6 +45,10 @@ usage()
   echo "            Upload build products to SERVER. Default is '$port'"
   echo "        -u USER,--user=USER"
   echo "            Use USER name for for scp auth. Default is '$user'"
+  echo "        -U USER,--user-with-dirs=USER"
+  echo "            Use USER name for for scp auth. Default is '$user'"
+  echo "            Store files at /home/USER/PLATFORM subdirectory on the server"
+  echo "            This is the same as -u USER -a /home/USER/PLATFORM"
   echo "        --skip"
   echo "            Do not upload files to the server."
 }
@@ -59,8 +64,8 @@ check_outform()
   done
 }
 
-SHORT_OPTS="hb:p:c:t:s:a:r:u:f:"
-LONG_OPTS="help,base-dir:,platform:,cpu:,build-type:,server:,path:,port,user:out-form:,skip"
+SHORT_OPTS="hb:p:c:t:s:a:r:u:f:U:"
+LONG_OPTS="help,base-dir:,platform:,cpu:,build-type:,server:,path:,port,user:out-form:,user-with-dirs:,skip"
 
 OPTIONS_LIST=$(getopt -n $(basename $0) -o "$SHORT_OPTS" -l "$LONG_OPTS" -- "$@")
 [ $? -eq 0 ] || exit 1
@@ -109,6 +114,11 @@ while [ -n "$1" ]; do
       shift
       user="$1"
     ;;
+    -U|--user-with-dirs)
+      shift
+      user="$1"
+      withdirs=1
+    ;;
     --skip)
       shift
       skip=1
@@ -138,6 +148,10 @@ PROJ_BASE=${basedir}
 
 SRV=${user}@${server}
 SRVPORT="-P $port"
+
+if [ ${withdirs} -eq 1 ]; then
+  path=/home/${user}/${platform}
+fi
 SRVDIR=$path
 
 [ -z "$outform" ] && outform=$defoutform
@@ -210,8 +224,9 @@ if [ $DO_IMAGE -eq 1 ]; then
   vmli="$(ls $PRJDIR/${BUILD_TYPE}/*.${vmli_name} | grep -v [0-9].${vmli_name} | tail -n 1)"
   if [ -f "$vmli" ]; then echo "Copy $vmli"; cp -f $vmli $WORKDIR/$vmli_name; fi
   # Arris PKG
-  pkg_name=vmlinuz-initrd.pkg
-  pkg="$(ls $PRJDIR/${BUILD_TYPE}/*.pkg | grep -v [0-9].pkg | tail -n 1)"
+  set -x
+  pkg_name=vmlinuz-initrd.pkg.charter
+  pkg="$(ls $PRJDIR/${BUILD_TYPE}/*.charter | grep -v [0-9].charter | tail -n 1)"
   if [ -f "$pkg" ]; then echo "Copy $pkg"; cp -f $pkg $WORKDIR/$pkg_name; fi
   # NFS
   nfm_name=nfs_image-${BUILD_TYPE}.zip
