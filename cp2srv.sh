@@ -224,7 +224,6 @@ if [ $DO_IMAGE -eq 1 ]; then
   vmli="$(ls $PRJDIR/${BUILD_TYPE}/*.${vmli_name} | grep -v [0-9].${vmli_name} | tail -n 1)"
   if [ -f "$vmli" ]; then echo "Copy $vmli"; cp -f $vmli $WORKDIR/$vmli_name; fi
   # Arris PKG
-  set -x
   pkg_name=vmlinuz-initrd.pkg.charter
   pkg="$(ls $PRJDIR/${BUILD_TYPE}/*.charter | grep -v [0-9].charter | tail -n 1)"
   if [ -f "$pkg" ]; then echo "Copy $pkg"; cp -f $pkg $WORKDIR/$pkg_name; fi
