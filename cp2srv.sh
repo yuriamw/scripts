@@ -13,6 +13,7 @@ port=22
 user=zodiac
 skip=0
 withdirs=0
+skipnfs=0
 
 supported_outforms="image powerup"
 
@@ -51,6 +52,8 @@ usage()
   echo "            This is the same as -u USER -a /home/USER/PLATFORM"
   echo "        --skip"
   echo "            Do not upload files to the server."
+  echo "        -n,--skip-nfs"
+  echo "            Use USER name for for scp auth. Default is '$user'"
 }
 
 check_outform()
@@ -64,8 +67,8 @@ check_outform()
   done
 }
 
-SHORT_OPTS="hb:p:c:t:s:a:r:u:f:U:"
-LONG_OPTS="help,base-dir:,platform:,cpu:,build-type:,server:,path:,port,user:out-form:,user-with-dirs:,skip"
+SHORT_OPTS="hb:p:c:t:s:a:r:u:f:U:n"
+LONG_OPTS="help,base-dir:,platform:,cpu:,build-type:,server:,path:,port,user:out-form:,user-with-dirs:,skip-nfs,skip"
 
 OPTIONS_LIST=$(getopt -n $(basename $0) -o "$SHORT_OPTS" -l "$LONG_OPTS" -- "$@")
 [ $? -eq 0 ] || exit 1
@@ -118,6 +121,10 @@ while [ -n "$1" ]; do
       shift
       user="$1"
       withdirs=1
+    ;;
+    -n|--skip-nfs)
+      shift
+      skipnfs=1
     ;;
     --skip)
       shift
@@ -228,9 +235,11 @@ if [ $DO_IMAGE -eq 1 ]; then
   pkg="$(ls $PRJDIR/${BUILD_TYPE}/*.charter | grep -v [0-9].charter | tail -n 1)"
   if [ -f "$pkg" ]; then echo "Copy $pkg"; cp -f $pkg $WORKDIR/$pkg_name; fi
   # NFS
-  nfm_name=nfs_image-${BUILD_TYPE}.zip
-  nfm=$PRJDIR/$nfm_name
-  [ -f "$nfm" ] && cp -f $nfm $WORKDIR/$nfm_name
+  if [ $skipnfs -ne 1 ]; then
+    nfm_name=nfs_image-${BUILD_TYPE}.zip
+    nfm=$PRJDIR/$nfm_name
+    [ -f "$nfm" ] && cp -f $nfm $WORKDIR/$nfm_name
+  fi
   if [ $skip -ne 1 ]; then
     echo "scp to ${SRV}:${SRVDIR} ... "
     scp ${SRVPORT} ${WORKDIR}/* ${SRV}:${SRVDIR}
