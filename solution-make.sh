@@ -11,7 +11,7 @@ ACTION=0
 
 usage()
 {
-  echo "Usage: $(basename $0) [OPTIONS] TARGET"
+  echo "Usage: $(basename $0) [OPTIONS] TARGET [TARGET2] [TARGET3]"
   echo "    Options:"
   echo "        -h,--help"
   echo "            Print help and exit"
@@ -32,6 +32,24 @@ set_action()
 {
   [ ${ACTION} -ne 0 ] && (echo "Only one action is permitted"; exit 1)
   ACTION=$1
+}
+
+echo_action()
+{
+  case ${ACTION} in
+    ${DO_POWERUP})
+      echo -n "PowerUp"
+    ;;
+    ${DO_DVBS})
+      echo -n "DVBS"
+    ;;
+    ${DO_IMAGE})
+      echo -n "image"
+    ;;
+    *)
+      echo -n "@?#?#?@"
+    ;;
+  esac
 }
 
 SHORT_OPTS="hpdi"
@@ -69,47 +87,55 @@ while [ -n "$1" ]; do
   shift
 done
 
-TARGET=$1
-
 if [ ${ACTION} -eq 0 ]; then
   usage
   exit 1
 fi
 
-if [ -z "${TARGET}" ]; then
-  usage
-  exit 1
-fi
+while [ -n "$1" ]; do
 
-target=$(echo ${TARGET} | sed -e 's/\-.*//')
-type=$(echo ${TARGET} | sed -n -e 's/.*\-//p')
-[ -z "${type}" ] && type=dev
+  TARGET=$1; shift
 
-DIR=
-case ${ACTION} in
-  ${DO_POWERUP})
-    ./01_build_native.sh charter-${target}-${type}
-  ;;
-  ${DO_DVBS})
-    [ -d build/make-wrapper ] && DIR=build/make-wrapper
-    [ -d native/apps/DVBS/build/make-wrapper ] && DIR=native/apps/DVBS/build/make-wrapper
-    if [ -z "${DIR}" ]; then
-      echo "ERROR: Could not find DVBS build/make-wrapper directory"
-      exit 1
-    fi
-    (cd $DIR && ./make.sh charter-${target}-${type})
-  ;;
-  ${DO_IMAGE})
-    [ -d charter-worldbox-images ] && DIR=charter-worldbox-images
-    [ -d native/apps/charter-worldbox-images ] && DIR=native/apps/charter-worldbox-images
-    if [ -z "${DIR}" ]; then
-      echo "ERROR: Could not find DVBS build/make-wrapper directory"
-      exit 1
-    fi
-    (cd ${DIR} && ./make.sh charter-${target}-${type})
-  ;;
-  *)
+  if [ -z "${TARGET}" ]; then
     usage
     exit 1
-  ;;
-esac
+  fi
+
+  target=$(echo ${TARGET} | sed -e 's/\-.*//')
+  type=$(echo ${TARGET} | sed -n -e 's/.*\-//p')
+  [ -z "${type}" ] && type=dev
+
+  echo "######################################################################"
+  echo "###   START: Build $(echo_action) for target ${charter-${target}-${type}}"
+
+  DIR=
+  case ${ACTION} in
+    ${DO_POWERUP})
+      ./01_build_native.sh charter-${target}-${type}
+    ;;
+    ${DO_DVBS})
+      [ -d build/make-wrapper ] && DIR=build/make-wrapper
+      [ -d native/apps/DVBS/build/make-wrapper ] && DIR=native/apps/DVBS/build/make-wrapper
+      if [ -z "${DIR}" ]; then
+        echo "ERROR: Could not find DVBS build/make-wrapper directory"
+        exit 1
+      fi
+      (cd $DIR && ./make.sh charter-${target}-${type})
+    ;;
+    ${DO_IMAGE})
+      [ -d charter-worldbox-images ] && DIR=charter-worldbox-images
+      [ -d native/apps/charter-worldbox-images ] && DIR=native/apps/charter-worldbox-images
+      if [ -z "${DIR}" ]; then
+        echo "ERROR: Could not find DVBS build/make-wrapper directory"
+        exit 1
+      fi
+      (cd ${DIR} && ./make.sh charter-${target}-${type})
+    ;;
+    *)
+      usage
+      exit 1
+    ;;
+  esac
+  echo "###   FINISH: Build $(echo_action) for target ${charter-${target}-${type}}"
+  echo "######################################################################"
+done
