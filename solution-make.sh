@@ -4,9 +4,10 @@ export LC_ALL=C
 
 TARGET=
 
-DO_POWERUP=1
-DO_DVBS=2
-DO_IMAGE=3
+DO_FETCH=1
+DO_POWERUP=2
+DO_DVBS=3
+DO_IMAGE=4
 ACTION=0
 
 usage()
@@ -15,6 +16,8 @@ usage()
   echo "    Options:"
   echo "        -h,--help"
   echo "            Print help and exit"
+  echo "        -f,--fetch"
+  echo "            Fetch dependencies"
   echo "        -p,--powerup"
   echo "            Build whole PowerUp"
   echo "        -d,--dvbs"
@@ -37,6 +40,9 @@ set_action()
 echo_action()
 {
   case ${ACTION} in
+    ${DO_FETCH})
+      echo -n "fetch"
+    ;;
     ${DO_POWERUP})
       echo -n "PowerUp"
     ;;
@@ -52,8 +58,8 @@ echo_action()
   esac
 }
 
-SHORT_OPTS="hpdi"
-LONG_OPTS="help,powerup,dvbs,image"
+SHORT_OPTS="hfpdi"
+LONG_OPTS="help,fetch,powerup,dvbs,image"
 
 OPTIONS_LIST=$(getopt -n $(basename $0) -o "$SHORT_OPTS" -l "$LONG_OPTS" -- "$@")
 [ $? -eq 0 ] || exit 1
@@ -65,6 +71,9 @@ while [ -n "$1" ]; do
     -h|--help)
       usage
       exit 0
+    ;;
+    -f|--fetch)
+      set_action ${DO_FETCH}
     ;;
     -p|--powerup)
       set_action ${DO_POWERUP}
@@ -110,6 +119,9 @@ while [ -n "$1" ]; do
 
   DIR=
   case ${ACTION} in
+    ${DO_FETCH})
+      ./00_fetch_dependencies_native.sh charter-${target}-${type}
+    ;;
     ${DO_POWERUP})
       ./01_build_native.sh charter-${target}-${type}
     ;;
