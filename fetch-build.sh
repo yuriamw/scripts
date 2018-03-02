@@ -159,7 +159,7 @@ function download_file() {
 ###############################################################################
 
 echo "Platforms: ${PLATFORM_TO_FETCH}"
-echo "Build: ${BUILD_ID} Type: ${BUILD_TYPE} Pattern: ${BUILD_PATTERN}"
+echo "Branch: ${FTP_BRANCH} Build: ${BUILD_ID} Type: ${BUILD_TYPE} Pattern: ${BUILD_PATTERN}"
 
 for PLATFORM in ${PLATFORM_TO_FETCH}; do
   echo "======================================================================="
@@ -183,6 +183,10 @@ for PLATFORM in ${PLATFORM_TO_FETCH}; do
   rm -rf ${PLATFORM}/${BUILD_TYPE}
   mkdir -p ${PLATFORM}/${BUILD_TYPE}
   unzip ${PLATFORM}/${IMAGE_INSTALL_FILE} -d ${PLATFORM}/${BUILD_TYPE}
+  rm -f ${PLATFORM}/${BUILD_TYPE}/home/zodiac/{build.txt,cpsl.version,preload_pack.tar,supervisor_http.yaml,vgdrm.version}
+  mv -f ${PLATFORM}/${BUILD_TYPE}/home/zodiac/supervisor_etv.yaml ${PLATFORM}/${BUILD_TYPE}/home/zodiac/supervisor.yaml
+  rm -f ${PLATFORM}/${BUILD_TYPE}/usr/bin/{DALManager,test_cpsl*}
+  rm -f ${PLATFORM}/${BUILD_TYPE}/usr/lib/{libHMS*.so*,libmx*.so*,libTranscoder*.so*,libgtest*.so,libpk.so*}
 
   if [ $rootfs_count -gt 1 ]; then
     echo "WRN: rootfs_count=${rootfs_count}"
