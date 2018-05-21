@@ -1,0 +1,3 @@
+#! /bin/bash
+
+docker container run --rm --entrypoint /bin/start -v /usr/bin/qemu-arm-static:/usr/bin/qemu-arm-static --name cont_demo_armhf --network host demo_armhf
