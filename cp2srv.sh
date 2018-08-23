@@ -8,17 +8,19 @@ platform=
 cpu=arm
 buildtype=dev
 server=ctec
-path=/home/zodiac
+user=$USER
+path=/home/$USER
 port=22
-user=zodiac
 skip=0
 withdirs=0
 skipnfs=0
+mso=charter
 
-supported_outforms="image powerup"
+supported_outforms="image powerup valhalla"
 
 DO_POWERUP=0
 DO_IMAGE=0
+DO_VALHALLA=0
 
 usage()
 {
@@ -146,7 +148,7 @@ if [ -z "$platform" ]; then
   exit 1
 fi
 
-TARGET="$platform-$cpu-charter"
+TARGET="$platform-$cpu-$mso"
 BUILD_TYPE=$buildtype
 
 WORKDIR=$(mktemp -d)
@@ -177,10 +179,10 @@ done
 
 echo "Output form: $current_outforms"
 echo "Directory:   $PROJ_BASE"
-echo "Target:      $TARGET"
 echo "Build type:  $BUILD_TYPE"
 
 if [ $DO_POWERUP -eq 1 ]; then
+  echo "Target:      $TARGET"
   PRJDIR=${PROJ_BASE}/native/output/${TARGET}/${BUILD_TYPE}
   if [ -d ${PRJDIR} ]; then
     TAR=${TAR_BASE}.tar.bz2
@@ -219,6 +221,7 @@ if [ $DO_POWERUP -eq 1 ]; then
 fi
 
 if [ $DO_IMAGE -eq 1 ]; then
+  echo "Target:      $TARGET"
   PRJDIR=${PROJ_BASE}/native/output-images/${TARGET}
   rm -rf ${WORKDIR}
   mkdir -p ${WORKDIR}
@@ -249,7 +252,33 @@ if [ $DO_IMAGE -eq 1 ]; then
   fi
 fi
 
-
+if [ $DO_VALHALLA -eq 1 ]; then
+  echo "Target:      ${mso}-${platform}"
+  PRJDIR=${PROJ_BASE}/out.${mso}-${platform}/artifacts
+  transfer_files=""
+  rm -rf ${WORKDIR}
+  mkdir -p ${WORKDIR}
+  # Humax vmlinuz_initrd
+  vmli_name=vmlinuz_initrd
+  vmli_name_out=valhalla.vml-IO
+  vmli="$(ls -t $PRJDIR/*.${vmli_name} | head -n 1)"
+  if [ -f "$vmli" ]; then echo "Copy $vmli"; cp -f $vmli $WORKDIR/$vmli_name_out; transfer_files="$transfer_files $WORKDIR/$vmli_name_out"; fi
+  # NFS
+  if [ $skipnfs -ne 1 ]; then
+    nfm_name="nfs_image-${BUILD_TYPE}*.zip"
+    nfm_name_out="nfs_image-${BUILD_TYPE}.zip"
+    nfm="$(ls -t $PRJDIR/$nfm_name | head -n 1)"
+    if [ -f "$nfm" ]; then echo "Copy $nfm"; cp -f $nfm $WORKDIR/$nfm_name_out; transfer_files="$transfer_files $WORKDIR/$nfm_name_out"; fi
+  fi
+  # Transfer
+  if [ $skip -ne 1 ]; then
+    echo "scp to ${SRV}:${SRVDIR} ... "
+    scp ${SRVPORT} ${transfer_files} ${SRV}:${SRVDIR}
+  else
+    echo "cp to current dir: $(pwd) ... "
+    cp ${transfer_files} ./
+  fi
+fi
 
 rm -rf ${WORKDIR}
 date
