@@ -125,7 +125,6 @@ while [ -n "$1" ]; do
       withdirs=1
     ;;
     -n|--skip-nfs)
-      shift
       skipnfs=1
     ;;
     --skip)
