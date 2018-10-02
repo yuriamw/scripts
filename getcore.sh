@@ -13,7 +13,8 @@ default_mso=charter
 default_cpu=mipsel
 default_platform=humaxwb11
 default_user="$USER"
-default_toolchain=zstbgcc-8.1.0-mipsel-uclibc-0.9.32
+default_toolchain=zstbgcc-8.2.0-mipsel-uclibc-0.9.32
+default_toolchain_local_prefix=/home/iurii.ovcharenko/work/soft/charter/IPStack/toolchain/valhalla
 default_core_dir=core
 
 nfs_server=""
@@ -159,7 +160,7 @@ set_default_if_empty toolchain
 set_default_if_empty core_dir
 
 if [ $local_toolchain -eq 1 ]; then
-  toolchain_prefix=${gn_tree}/tools/toolchain-build/.install/${toolchain}
+  toolchain_prefix=${default_toolchain_local_prefix}/tools/toolchain-build/.install/${toolchain}
 fi
 
 if [ $DO_ALL -eq 1 ]; then
