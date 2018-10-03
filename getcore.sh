@@ -109,6 +109,10 @@ while [ -n "$1" ]; do
       app="$1"
       core_dir="$1"
     ;;
+    -g|--gn)
+      shift
+      gn_tree="$1"
+    ;;
     -p|--platform)
       shift
       platform="$1"
