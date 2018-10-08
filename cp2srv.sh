@@ -7,6 +7,7 @@ basedir=.
 platform=
 cpu=arm
 buildtype=dev
+buildvariant=
 server=ctec
 user=$USER
 path=/home/$USER
@@ -40,6 +41,8 @@ usage()
   echo "            Search for build products for CPU. Default is '$cpu'"
   echo "        -t BUILDTYPE,--build-type=BUILDTYPE"
   echo "            Search for BUILDTYPE build products. Default is '$buildtype'"
+  echo "        -i VARIANT,--build-variant=VARIANT"
+  echo "            Search for build VARIANT products. Default is '$buildvariant'"
   echo "        -s SERVER,--server=SERVER"
   echo "            Upload build products to SERVER. Default is '$server'"
   echo "        -a PATH,--path=PATH"
@@ -69,8 +72,8 @@ check_outform()
   done
 }
 
-SHORT_OPTS="hb:p:c:t:s:a:r:u:f:U:n"
-LONG_OPTS="help,base-dir:,platform:,cpu:,build-type:,server:,path:,port,user:out-form:,user-with-dirs:,skip-nfs,skip"
+SHORT_OPTS="hb:p:c:t:i:s:a:r:u:f:U:n"
+LONG_OPTS="help,base-dir:,platform:,cpu:,build-type:,build-variant:,server:,path:,port,user:out-form:,user-with-dirs:,skip-nfs,skip"
 
 OPTIONS_LIST=$(getopt -n $(basename $0) -o "$SHORT_OPTS" -l "$LONG_OPTS" -- "$@")
 [ $? -eq 0 ] || exit 1
@@ -102,6 +105,10 @@ while [ -n "$1" ]; do
     -t|--build-type)
       shift
       buildtype="$1"
+    ;;
+    -i|--build-variant)
+      shift
+      buildvariant="$1"
     ;;
     -s|--server)
       shift
@@ -149,6 +156,10 @@ fi
 
 TARGET="$platform-$cpu-$mso"
 BUILD_TYPE=$buildtype
+BUILD_VARIANT=
+if [ -n "$buildvariant" ]; then
+  BUILD_VARIANT="-${buildvariant}"
+fi
 
 WORKDIR=$(mktemp -d)
 TAR_BASE=$platform-$buildtype
@@ -253,7 +264,7 @@ fi
 
 if [ $DO_VALHALLA -eq 1 ]; then
   echo "Target:      ${mso}-${platform}"
-  PRJDIR=${PROJ_BASE}/out.${mso}-${platform}/artifacts
+  PRJDIR=${PROJ_BASE}/out.${mso}-${platform}${BUILD_VARIANT}-${buildtype}/artifacts
   transfer_files=""
   rm -rf ${WORKDIR}
   mkdir -p ${WORKDIR}
