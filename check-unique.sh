@@ -1,7 +1,9 @@
 #! /bin/bash
 
-TOOLCHAIN_PATH=/opt/toolchains/zstbgcc-8.2.0-arm-eglibc-2.18-new/bin
-CROSS=arm-linux-
+TOOLCHAIN_PATH=/opt/toolchains/zstbgcc-8.2.0-mipsel-uclibc-0.9.29/bin
+CROSS=mipsel-linux-
+# TOOLCHAIN_PATH=/opt/toolchains/zstbgcc-8.2.0-arm-eglibc-2.18-new/bin
+# CROSS=arm-linux-
 
 DIR=$1
 if [ -z "$DIR" ]; then

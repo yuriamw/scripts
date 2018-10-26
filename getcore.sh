@@ -178,7 +178,7 @@ if [ $DO_DOWNLOAD -eq 1 ]; then
   set +e
   for f in lib usr/lib usr/bin; do
 #     cp -fv ${gn_tree}/out.${mso}-${platform}/linux/${cpu}/${buildtype}/sysroot/$f/* ${core_dir}/
-    cp -fv ${gn_tree}/out.${mso}-${platform}/linux/sysroot/$f/* ${core_dir}/
+    cp -fv ${gn_tree}/out.${mso}-${platform}-${buildtype}/linux/sysroot/$f/* ${core_dir}/
     echo $?
   done
   set -e
@@ -188,5 +188,5 @@ if [ $DO_DOWNLOAD -eq 1 ]; then
 fi
 
 if [ $DO_RUN -eq 1 ]; then
-  ${toolchain_prefix}/opt/toolchains/${toolchain}/bin/${cpu}-linux-gdb -e ${core_dir}/${app} -c ${core_dir}/`basename ${nfs_core_name}` --eval-command="set solib-search-path ${core_dir}"
+  ${toolchain_prefix}/opt/toolchains/${toolchain}/bin/${cpu}-linux-gdb -e ${core_dir}/${app} -s ${core_dir}/${app} -c ${core_dir}/`basename ${nfs_core_name}` --eval-command="set solib-search-path ${core_dir}"
 fi
