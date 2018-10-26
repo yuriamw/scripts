@@ -1,0 +1,9 @@
+#! /bin/bash
+###############################################################################
+# http://davmail.sourceforge.net/serversetup.html
+# http://davmail.sourceforge.net/thunderbirdimapmailsetup.html
+###############################################################################
+#
+DIR=/home/iurii.ovcharenko/work/davmail
+CONF=/home/iurii.ovcharenko/work/soft/scripts/davmail/davmail-config
+nohup $DIR/davmail.sh $CONF > /tmp/nohup.out &
