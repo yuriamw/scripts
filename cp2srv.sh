@@ -41,6 +41,8 @@ usage()
   echo "            Search for build products for CPU. Default is '$cpu'"
   echo "        -t BUILDTYPE,--build-type=BUILDTYPE"
   echo "            Search for BUILDTYPE build products. Default is '$buildtype'"
+  echo "        -m MSO,--mso=MSO"
+  echo "            Search output for <MSO>. Default is '$mso'"
   echo "        -i VARIANT,--build-variant=VARIANT"
   echo "            Search for build VARIANT products. Default is '$buildvariant'"
   echo "        -s SERVER,--server=SERVER"
@@ -72,8 +74,8 @@ check_outform()
   done
 }
 
-SHORT_OPTS="hb:p:c:t:i:s:a:r:u:f:U:n"
-LONG_OPTS="help,base-dir:,platform:,cpu:,build-type:,build-variant:,server:,path:,port,user:out-form:,user-with-dirs:,skip-nfs,skip"
+SHORT_OPTS="hb:p:c:t:m:i:s:a:r:u:f:U:n"
+LONG_OPTS="help,base-dir:,platform:,cpu:,build-type:,mso:,build-variant:,server:,path:,port,user:out-form:,user-with-dirs:,skip-nfs,skip"
 
 OPTIONS_LIST=$(getopt -n $(basename $0) -o "$SHORT_OPTS" -l "$LONG_OPTS" -- "$@")
 [ $? -eq 0 ] || exit 1
@@ -105,6 +107,10 @@ while [ -n "$1" ]; do
     -t|--build-type)
       shift
       buildtype="$1"
+    ;;
+    -m|--mso)
+      shift
+      mso="$1"
     ;;
     -i|--build-variant)
       shift
