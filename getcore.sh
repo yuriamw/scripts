@@ -12,6 +12,7 @@ default_buildtype=dev
 default_mso=charter
 default_cpu=mipsel
 default_platform=humaxwb11
+default_build_variant=
 default_user="$USER"
 default_toolchain=zstbgcc-8.2.0-mipsel-uclibc-0.9.32
 default_toolchain_local_prefix=/home/iurii.ovcharenko/work/soft/charter/IPStack/toolchain/valhalla
@@ -25,6 +26,7 @@ buildtype=""
 mso=""
 cpu=""
 platform=""
+build_variant=""
 app=""
 user=""
 toolchain=""
@@ -56,6 +58,8 @@ usage()
   echo "            Default is ${default_gn_tree}"
   echo "        -p PLATFORM,--platform=PLATFORM"
   echo "            Search for build products for PLATFORM. Default is $default_platform"
+  echo "        -i VARIANT,--build-variant=VARIANT"
+  echo "            Search for build VARIANT products. Default is $default_build_variant"
   echo "        -c CPU,--cpu=CPU"
   echo "            Search for build products for CPU. Default is '$default_cpu'"
   echo "        -b BUILDTYPE,--build-type=BUILDTYPE"
@@ -70,8 +74,8 @@ usage()
   echo "            Login to NFS server as user USER. Default is '$default_user'"
 }
 
-SHORT_OPTS="hdrn:o:g:c:p:b:a:A:t:l"
-LONG_OPTS="help,download,run,nfs-core:core:gn:cpu:platform:build-type:app:app-with-dir:toolchain:local-toolchain"
+SHORT_OPTS="hdrn:o:g:c:m:p:i:b:a:A:t:l"
+LONG_OPTS="help,download,run,nfs-core:,core:,gn:,cpu:,mso:,platform:,build-variant:,build-type:,app:,app-with-dir:,toolchain:,local-toolchain"
 
 OPTIONS_LIST=$(getopt -n $(basename $0) -o "$SHORT_OPTS" -l "$LONG_OPTS" -- "$@")
 [ $? -eq 0 ] || exit 1
@@ -113,9 +117,17 @@ while [ -n "$1" ]; do
       shift
       gn_tree="$1"
     ;;
+    -m|--mso)
+      shift
+      mso="$1"
+    ;;
     -p|--platform)
       shift
       platform="$1"
+    ;;
+    -i|--build-variant)
+      shift
+      build_variant="$1"
     ;;
     -c|--cpu)
       shift
@@ -159,9 +171,12 @@ set_default_if_empty buildtype
 set_default_if_empty mso
 set_default_if_empty cpu
 set_default_if_empty platform
+set_default_if_empty build_variant
 set_default_if_empty user
 set_default_if_empty toolchain
 set_default_if_empty core_dir
+
+if [ -n "$build_variant" ]; then build_variant="-${build_variant}"; fi
 
 if [ $local_toolchain -eq 1 ]; then
   toolchain_prefix=${default_toolchain_local_prefix}/tools/toolchain-build/.install/${toolchain}
@@ -178,7 +193,7 @@ if [ $DO_DOWNLOAD -eq 1 ]; then
   set +e
   for f in lib usr/lib usr/bin; do
 #     cp -fv ${gn_tree}/out.${mso}-${platform}/linux/${cpu}/${buildtype}/sysroot/$f/* ${core_dir}/
-    cp -fv ${gn_tree}/out.${mso}-${platform}-${buildtype}/linux/sysroot/$f/* ${core_dir}/
+    cp -fv ${gn_tree}/out.${mso}-${platform}${build_variant}-${buildtype}/linux/sysroot/$f/* ${core_dir}/
     echo $?
   done
   set -e
