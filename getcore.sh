@@ -192,8 +192,7 @@ if [ $DO_DOWNLOAD -eq 1 ]; then
   mkdir -p ${core_dir}
   set +e
   for f in lib usr/lib usr/bin; do
-#     cp -fv ${gn_tree}/out.${mso}-${platform}/linux/${cpu}/${buildtype}/sysroot/$f/* ${core_dir}/
-    cp -fv ${gn_tree}/out.${mso}-${platform}${build_variant}-${buildtype}/linux/sysroot/$f/* ${core_dir}/
+    cp -av ${gn_tree}/out.${mso}-${platform}${build_variant}-${buildtype}/linux/sysroot/$f/* ${core_dir}/
     echo $?
   done
   set -e
