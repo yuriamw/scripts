@@ -272,12 +272,24 @@ if [ $DO_VALHALLA -eq 1 ]; then
   echo "Target:      ${mso}-${platform}"
   PRJDIR=${PROJ_BASE}/out.${mso}-${platform}${BUILD_VARIANT}-${buildtype}/artifacts
   transfer_files=""
+  case ${buildtype} in
+    dev)
+      imgtype=_SLG
+    ;;
+    prd)
+      imgtype=_SRU
+    ;;
+    *)
+      echo "ERROR: unknown image type for build type '${buildtype}'"
+      exit 1
+    ;;
+  esac
   rm -rf ${WORKDIR}
   mkdir -p ${WORKDIR}
   # Humax vmlinuz_initrd
   vmli_name=vmlinuz_initrd
   vmli_name_out=valhalla.vml-IO
-  vmli="$(ls -t $PRJDIR/*.${vmli_name} | head -n 1)"
+  vmli="$(ls -t $PRJDIR/*${imgtype}.${vmli_name} | head -n 1)"
   if [ -f "$vmli" ]; then echo "Copy $vmli"; cp -f $vmli $WORKDIR/$vmli_name_out; transfer_files="$transfer_files $WORKDIR/$vmli_name_out"; fi
   # NFS
   if [ $skipnfs -ne 1 ]; then
