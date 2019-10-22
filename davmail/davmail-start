@@ -4,6 +4,13 @@
 # http://davmail.sourceforge.net/thunderbirdimapmailsetup.html
 ###############################################################################
 #
+
 DIR=/home/iurii.ovcharenko/work/davmail
-CONF=/home/iurii.ovcharenko/work/soft/scripts/davmail/davmail-config
-nohup $DIR/davmail.sh $CONF > /tmp/nohup.out &
+
+CONF[0]=/home/iurii.ovcharenko/work/soft/scripts/davmail/davmail-charter.config
+CONF[1]=/home/iurii.ovcharenko/work/soft/scripts/davmail/davmail-zodiacsystems.config
+
+for i in $(seq 0 $((${#CONF[@]}-1))) ; do
+    nohup_log=/tmp/nohup-$(basename ${CONF[$i]} .config)
+    nohup $DIR/davmail ${CONF[$i]} > $nohup_log &
+done
