@@ -3,6 +3,8 @@
 sym=
 dirlist=
 defaultdir=.
+elfs=0
+nm_search_flags=ABDTWV
 
 usage()
 {
@@ -16,10 +18,12 @@ usage()
   echo "        -d DIR,--dir=DIR"
   echo "            Search in directory DIR. Repeat multilpe times to search in multiple directories."
   echo "            Default is current directory."
+  echo "        -e,--elfs"
+  echo "            Search symbols in all ELF files instead of lib*.so* pattern."
 }
 
-SHORT_OPTS="hs:d:"
-LONG_OPTS="help,sym:,dir:"
+SHORT_OPTS="hs:d:e"
+LONG_OPTS="help,sym:,dir:,elfs"
 
 OPTIONS_LIST=$(getopt -n $(basename $0) -o "$SHORT_OPTS" -l "$LONG_OPTS" -- "$@")
 [ $? -eq 0 ] || exit 1
@@ -40,6 +44,9 @@ while [ -n "$1" ]; do
       shift
       dirlist="${dirlist} $1"
     ;;
+    -e|--elfs)
+      elfs=1
+    ;;
     --)
       break
     ;;
@@ -59,9 +66,17 @@ if [ -z "${dirlist}" ]; then
     dirlist=${defaultdir}
 fi
 
-for i in $(find $dirlist -name "lib*.so*"); do
-    if [ $(nm -D $i 2>/dev/null | grep -c -w "[ABDTW] $sym") -gt 0 ]; then
+search_files() {
+    if [ $elfs -eq 0 ]; then
+        find $dirlist -name "lib*.so*"
+    else
+        for _elf in $(find $dirlist -type f); do if [ $(file $_elf | grep -c ELF) -ne 0 ]; then echo $_elf; fi; done
+    fi
+}
+
+for i in $(search_files); do
+    if [ $(nm -D $i 2>/dev/null | grep -c -w "[$nm_search_flags] $sym") -gt 0 ]; then
         echo $i
-        nm -D $i | grep -w "[ABDTW] $sym";
+        nm -D $i | grep -w "[$nm_search_flags] $sym";
     fi
 done
