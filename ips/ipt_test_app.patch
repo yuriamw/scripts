@@ -1,0 +1,101 @@
+diff --git a/components/vbs/dvbs/test/stblookup/BUILD.gn b/components/vbs/dvbs/test/stblookup/BUILD.gn
+new file mode 100644
+index 0000000000..6e358c450c
+--- /dev/null
++++ b/components/vbs/dvbs/test/stblookup/BUILD.gn
+@@ -0,0 +1,20 @@
++###############################################################################
++# test executables
++###############################################################################
++executable("test_stblookup_ipc") {
++    configs += [ ":config" ]
++
++    sources  = [ "StbLookupTest.cpp" ]
++
++    deps     = [
++        "//components/vbs/libs/dvbs:sysroot",
++        "//components/common_runtime:sysroot",
++        "//components/vbs/libs/dvbs-common:sysroot",
++    ]
++}
++###############################################################################
++# test config
++###############################################################################
++config("config") {
++    include_dirs = [ "//components/vbs/dvbs/src" ]
++}
+diff --git a/components/vbs/dvbs/test/stblookup/StbLookupTest.cpp b/components/vbs/dvbs/test/stblookup/StbLookupTest.cpp
+new file mode 100644
+index 0000000000..696defd9bf
+--- /dev/null
++++ b/components/vbs/dvbs/test/stblookup/StbLookupTest.cpp
+@@ -0,0 +1,55 @@
++#include <stdlib.h>
++#include <stdio.h>
++
++#include <string>
++#include <iostream>
++
++#include "platform/Platform.h"
++#include "platform/PlatformDev.h"
++
++#include "crt/Logger.h"
++#include "modules/InternalModules.h"
++#include "crt/Assert.h"
++#include "concurrent/Thread.h"
++
++#include "command/CommandManager.h"
++
++static const crt::ModuleId module_id = modules::DVBS_TESTS();
++
++int main(int argc, char* argv[])
++{
++    CRT_VERIFY_NONZERO(argc >= 2);
++
++    CRT_VERIFY_NONZERO(platform::init());
++    platform::Platform platform = platform::Platform::instance();
++
++    std::string cmd(argv[1]);
++    if (!cmd.compare("get"))
++    {
++        std::cout << "stblookup_enabled: " << (platform.get_stblookup_enabled() ? "true" : "false") << std::endl;
++    }
++    else if (!cmd.compare("set"))
++    {
++        CRT_VERIFY_NONZERO(argc >= 3);
++        std::string en(argv[2]);
++        if (!en.compare("1") || !en.compare("true"))
++        {
++            platform.set_stblookup_enabled(true);
++        }
++        else if (!en.compare("0") || !en.compare("false"))
++        {
++            platform.set_stblookup_enabled(false);
++        }
++        else
++        {
++            std::cout << "Do not understand. Can true==1 or false==0" << std::endl;
++        }
++    }
++    else
++    {
++        std::cout << "Do not understand. Can get or set" << std::endl;
++    }
++
++	platform::uninit();
++	return 0;
++}
+diff --git a/components/vbs_tests/BUILD.gn b/components/vbs_tests/BUILD.gn
+index da4f6414e2..04d8a2ad48 100644
+--- a/components/vbs_tests/BUILD.gn
++++ b/components/vbs_tests/BUILD.gn
+@@ -178,6 +178,9 @@ if(vbs_test_command_manager) {
+     bin_artifacts += [ "test_command_manager" ]
+ }
+ 
++tests_deps    += [ "//components/vbs/dvbs/test/stblookup:test_stblookup_ipc" ]
++bin_artifacts += [ "test_stblookup_ipc" ]
++
+ if(vbs_test_crash_generator) {
+     tests_deps    += [ "//components/vbs/dvbs/test/debug:test_crash_generator" ]
+     bin_artifacts += [ "test_crash_generator" ]
