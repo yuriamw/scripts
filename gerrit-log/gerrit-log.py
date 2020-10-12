@@ -1,8 +1,12 @@
 #! /usr/bin/env python3
 #############################################################################
-# Get git-log from gerrit and generates table with commits
+# Script requests gerrit for commit log between two points in history
+# and build ODT/ODS/HTML documetns for further analyzis
 #
 # See below for outformat_ods and set True/False accordingly
+#
+# The simplest way to run:
+#   gerrit-log.py -s=rel/charter_28.1 -d=rel/charter_27.2.2 --odt -a user.name:password
 #
 # Output formats: ODS, ODT, HTML, CSV
 #   ODS       is the best usable
@@ -11,13 +15,17 @@
 #   CSV       is poor for imports
 #
 # Requires:
-#   ODFPy installed
+#   ODFPy installed:
 #      pip3 install odfpy
+#   Documentation is poor but it works and easy to install
+#   https://stackoverflow.com/questions/949171/odfpy-documentation
+#   https://raw.githubusercontent.com/Guts/Metadator/master/test/test_odf_genexample.py
+#   https://gist.github.com/balasankarc/1832670ec8ddd9a34d33
 #
 # Needs user login:password on commandline
 #
 # TODO:
-#  - Ask for password
+#  - Find and use better ODF API
 #  - DOCX/XLSX
 #  - JSON? XML?
 #  - Upload to corporate Sharepoint
@@ -31,12 +39,9 @@ import argparse
 import requests
 import json
 import re
+import getpass
 import urllib.parse
 # Import ODFPy
-#   Documentation is poor but it works and easy to install
-# https://stackoverflow.com/questions/949171/odfpy-documentation
-# https://raw.githubusercontent.com/Guts/Metadator/master/test/test_odf_genexample.py
-# https://gist.github.com/balasankarc/1832670ec8ddd9a34d33
 from odf.opendocument import OpenDocumentSpreadsheet, OpenDocumentText
 from odf.text import P, A, List, ListItem, ListStyle, ListLevelStyleNumber
 from odf.table import Table, TableRow, TableColumn, TableCell
@@ -110,8 +115,6 @@ if args.csv:
     outformat_csv = args.csv
 if args.gerrit_auth:
     gerrit_auth = args.gerrit_auth.split(":")
-    if len(gerrit_auth) != 2:
-        sys.exit("ERROR: Gerrit auth is missing.\nTry: {} --help".format(os.path.basename(sys.argv[0])))
 
 if args.src:
     src_commit = urllib.parse.quote(args.src)
@@ -120,15 +123,46 @@ if args.dst:
 if args.dst:
     dst_commit = urllib.parse.quote(args.dst)
 
+#############################################################################
+
 print("gerrit: {}".format(gerrit))
 print("project: {}".format(project))
 
 print("src_commit: {}".format(src_commit))
 print("dst_commit: {}".format(dst_commit))
 
+#############################################################################
+# user entered something like 'aaa:bbb:ccc'
+# invalidate auth
+if len(gerrit_auth) > 2:
+    gerrit_auth = []
+_user = ""
+_passwd = ""
+if len(gerrit_auth) > 0:
+    _user = gerrit_auth[0]
+if len(gerrit_auth) > 1:
+    _passwd = gerrit_auth[1]
+# user may enter something like ':passwd' which returns empty username
+if len(_user) == 0:
+    _passwd = ""
+    _u = getpass.getuser()
+    _user = input("User name{}: ".format(" ({})".format(_u) if len(_u) > 0 else ""))
+    # if user accepted the default username and hit <enter>
+    if len(_user) == 0:
+        _user = _u
+if len(_passwd) == 0:
+    _passwd = getpass.getpass("Password for {}: ".format(_user))
+
+if len(_user) > 0 and len(_passwd) > 0:
+    gerrit_auth = [ _user, _passwd ]
+
+if len(gerrit_auth) != 2:
+    sys.exit("ERROR: Gerrit auth is missing.\nTry: {} --help".format(os.path.basename(sys.argv[0])))
+
 if not (outformat_ods or outformat_odt or outformat_html or outformat_csv):
     sys.exit("ERROR: Out format is missing.\nTry: {} --help".format(os.path.basename(sys.argv[0])))
 
+#############################################################################
 # Print error mesage
 # Terminate script if exit_on_error == True
 def perror_exit(err_msg):
@@ -136,6 +170,7 @@ def perror_exit(err_msg):
     if exit_on_error:
         sys.exit(err_msg)
 
+#############################################################################
 # Return (Change-Id, Issues)
 def find_cid_issues(text):
     issues  = ""
@@ -156,6 +191,7 @@ def find_cid_issues(text):
             issues += " {}".format(msg[n:].strip())
     return cid, issues.strip()
 
+#############################################################################
 def generate_odf_table(doc, commit_list, numbering = True, with_border = False):
     # Nice formating
     width_gerrit = Style(name="WGerrit", family="table-column")
@@ -212,11 +248,12 @@ def generate_odf_table(doc, commit_list, numbering = True, with_border = False):
         table.addElement(tr)
     return table
 
+#############################################################################
 def generate_odf_list(doc, commit_list):
     # Nice numbering
     style = ListStyle(name = "List")
     numbers = ListLevelStyleNumber(level="1", stylename="Numbering", numsuffix=".", numformat='1')
-    prop = ListLevelProperties(spacebefore="0.25in", minlabelwidth="0.25in")
+    prop = ListLevelProperties(spacebefore="0.25in", minlabelwidth="0.25in", minlabeldistance="0.05in")
     numbers.addElement(prop)
     style.addElement(numbers)
     doc.automaticstyles.addElement(style)
