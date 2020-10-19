@@ -58,7 +58,7 @@ if sys.version_info.major < 3:
 exit_on_error = True
 
 gerrit     = "https://gerrit.developonbox.ru"
-project    = urllib.parse.quote("znextgen/valhalla")
+project    = urllib.parse.quote("znextgen/valhalla", safe='')
 jira       = "https://jira.zodiac.tv"
 
 outfile_base  = "out"
@@ -100,7 +100,7 @@ if args.gerrit:
 if args.jira:
     jira = args.jira
 if args.project:
-    project = urllib.parse.quote(args.project)
+    project = urllib.parse.quote(args.project, safe='')
 if args.table:
     odt_table = args.table
 if args.out:
@@ -117,11 +117,11 @@ if args.gerrit_auth:
     gerrit_auth = args.gerrit_auth.split(":")
 
 if args.src:
-    src_commit = urllib.parse.quote(args.src)
+    src_commit = urllib.parse.quote(args.src, safe='')
 if args.dst:
-    dst_commit = urllib.parse.quote(args.dst)
+    dst_commit = urllib.parse.quote(args.dst, safe='')
 if args.dst:
-    dst_commit = urllib.parse.quote(args.dst)
+    dst_commit = urllib.parse.quote(args.dst, safe='')
 
 #############################################################################
 
@@ -195,7 +195,7 @@ def find_cid_issues(text):
 def generate_odf_table(doc, commit_list, numbering = True, with_border = False):
     # Nice formating
     width_gerrit = Style(name="WGerrit", family="table-column")
-    width_gerrit.addElement(TableColumnProperties(columnwidth="9cm"))
+    width_gerrit.addElement(TableColumnProperties(columnwidth="3cm"))
     doc.automaticstyles.addElement(width_gerrit)
     width_issues = Style(name="WIssues", family="table-column")
     width_issues.addElement(TableColumnProperties(columnwidth="3cm"))
@@ -230,7 +230,7 @@ def generate_odf_table(doc, commit_list, numbering = True, with_border = False):
         # cell: gerrit link
         tc = TableCell(valuetype = 'string', stylename = border)
         p = P()
-        p.addElement( A(type = "simple", href = "{}/q/{}".format(gerrit, commit['sha']), text = commit['sha']) )
+        p.addElement( A(type = "simple", href = "{}/c/{}/+/{}".format(gerrit, project, commit['change']), text = commit['sha'][:7]) )
         tc.addElement(p)
         tr.addElement(tc)
         # cell: issues list
@@ -264,7 +264,7 @@ def generate_odf_list(doc, commit_list):
         p = P()
         # gerrit link
         # Gerrit abbrevs commit hash by 7 chars, we do the same
-        p.addElement( A(type = "simple", href = "{}/q/{}".format(gerrit, commit['sha']), text = commit['sha'][:7]) )
+        p.addElement( A(type = "simple", href = "{}/c/{}/+/{}".format(gerrit, project, commit['change']), text = commit['sha'][:7]) )
         teletype.addTextToElement(p, " ")
         # issues list
         for i in commit['issues'].split(' '):
@@ -332,31 +332,32 @@ print(" Done")
 #
 # The code is commented out and kept here for further investigation
 
-#NN         = 0
+NN         = 0
 
-#query      = "changes/{}~{}~".format(project, src_commit)
-#for commit in commit_list:
-    #url = "{}/a/{}{}".format(gerrit, query, commit['cid'])
-    #response = requests.get(url, auth=(gerrit_auth[0], gerrit_auth[1]))
+query      = "changes/{}~{}~".format(project, src_commit)
+for commit in commit_list:
+    url = "{}/a/{}{}".format(gerrit, query, commit['cid'])
+    #print(url)
+    response = requests.get(url, auth=(gerrit_auth[0], gerrit_auth[1]))
 
-    ##print(response.text)
+    #print(response.text)
 
-    #gerrit_prefix = ")]}'\n"
-    #if not response.text.startswith(gerrit_prefix):
-        #perror_exit("ERROR: This is not Gerrit REST API response")
+    gerrit_prefix = ")]}'\n"
+    if not response.text.startswith(gerrit_prefix):
+        perror_exit("ERROR: This is not Gerrit REST API response")
 
-    #change_log = json.loads( response.text.replace(")]}'\n", "", 1) )
-    #commit['change'] = change_log['_number']
+    change_log = json.loads( response.text.replace(")]}'\n", "", 1) )
+    commit['change'] = change_log['_number']
 
-    ##print(change_log)
+    #print(change_log)
 
-    #NN += 1
-    #print("\rChanges: {} ".format(NN), end = "")
+    NN += 1
+    print("\rChanges: {} ".format(NN), end = "")
 
-    #if NN > 16:
+    #if NN > 48:
         #break
 
-#print(" Done")
+print(" Done")
 
 #############################################################################
 if outformat_ods:
@@ -402,7 +403,7 @@ if outformat_html:
         jissues = []
         for i in commit['issues'].split(' '):
             jissues.append('<a href="{}/browse/{}">{}</a>'.format(jira, i, i))
-        line = '<tr><td>{}</td><td><a href="{}/q/{}">{}</a></td><td>{}</td><td>{}</td></tr>\n'.format(NN, gerrit, commit['sha'], commit['sha'], '<br>'.join(jissues), commit['short'])
+        line = '<tr><td>{}</td><td><a href="{}/c/{}/+/{}">{}</a></td><td>{}</td><td>{}</td></tr>\n'.format(NN, gerrit, project, commit['change'], commit['sha'][:7], '<br>'.join(jissues), commit['short'])
         f.write(line)
     f.write("".join(html_end))
     f.close()
@@ -424,7 +425,7 @@ if outformat_csv:
         for i in commit['issues'].split(' '):
             jissues.append('{}'.format(i))
             jlinks.append('{}/browse/{}'.format(jira, i))
-        line = '{},{}/q/{},{},{},"{}"\n'.format(NN, gerrit, commit['sha'], ';'.join(jissues), ';'.join(jlinks), commit['short'])
+        line = '{},{}/q/{},{},{},"{}"\n'.format(NN, gerrit, commit['change'], ';'.join(jissues), ';'.join(jlinks), commit['short'])
         f.write(line)
     f.close()
     print("Done")
