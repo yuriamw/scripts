@@ -39,6 +39,7 @@ jenkins_server = {
 }
 
 rootfs_zip_name_part = ".rootfs.zip"
+nfs_zip_name_part = "nfs_image"
 
 build_exclude_suffixes = [
     "-oemstubs",
@@ -84,6 +85,28 @@ def get_run_params(run_url):
     return build_platform, build_type
 
 #######################################################################
+def artifact_name(art_type):
+    if art_type == "rootfs":
+        ret = rootfs_zip_name_part
+    elif art_type == "nfs":
+        ret = nfs_zip_name_part
+
+    assert ret != None, "Unknown artifact type"
+
+    return ret
+
+#######################################################################
+def artifact_subdir(art_type, rootfs_zip, job):
+    if art_type == "rootfs":
+        ret = rootfs_zip[:len(rootfs_zip) - len(rootfs_zip_name_part)]
+    elif art_type == "nfs":
+        ret = rootfs_zip[:len(rootfs_zip) - len("-{}.zip".format(job))]
+
+    assert ret != None, "Unknown artifact type"
+
+    return ret
+
+#######################################################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'Download builds from Jenkins to manipulate files on rootfs.')
     parser.add_argument('-j', '--job',           action="store",    help='Jenkins job number'
@@ -95,6 +118,9 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--build-config',  action="append",   help='Use selected build config(s) only')
     parser.add_argument('-v', '--build-variant', action="append",   help='Use selected build-variant(s) only'
                                                                         , choices=['dev', 'tst', 'prd'])
+    parser.add_argument('-a', '--artifact',      action="store",    help='Jenkins artifact'
+                                                                        , default='rootfs'
+                                                                        , choices=['rootfs', 'nfs'])
     parser.add_argument(      '--user',          action="store",    help='Username')
     parser.add_argument(      '--passwd',        action="store",    help='Password')
     parser.add_argument('-o', '--output',        action="store",    help='Save downloaded files to OUTPUT'
@@ -157,7 +183,7 @@ if __name__ == "__main__":
 
         ftp_list = []
         ftp.retrlines('NLST', ftp_list.append)
-        rootfs_zip_indices = [ i for i, s in enumerate(ftp_list) if rootfs_zip_name_part in s ]
+        rootfs_zip_indices = [ i for i, s in enumerate(ftp_list) if artifact_name(args.artifact) in s ]
         print("Found {} rootfs file(s):".format(len(rootfs_zip_indices)))
         for n in rootfs_zip_indices:
             print("  {}".format(ftp_list[n]))
@@ -167,7 +193,7 @@ if __name__ == "__main__":
             rootfs_zip = ftp_list[rootfs_idx]
 
             subdir = os.path.join(output, "{}-{}".format(jenkins_server[args.type].name, job), "{}-{}".format(build_platform, build_type))
-            rootfs_subdir = rootfs_zip[:len(rootfs_zip) - len(rootfs_zip_name_part)]
+            rootfs_subdir = artifact_subdir(args.artifact, rootfs_zip, job)
             extract_dir = os.path.join(subdir, rootfs_subdir)
             localfile = os.path.join(subdir, rootfs_zip)
             #print(subdir)
