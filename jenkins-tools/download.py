@@ -38,6 +38,30 @@ jenkins_server = {
     ),
 }
 
+rootfs_zip_name_part = ".rootfs.zip"
+
+build_exclude_suffixes = [
+    "-oemstubs",
+    "-vbs",
+    "-oem_tests",
+    "-unit_tests",
+]
+
+build_excludes = [
+    "charter-moto2500-powerup",
+    "charter-motoastb-powerup",
+    "charter-pace-powerup",
+    "zodiac-motoastb-sfw",
+    "zodiac-moto2500-sfw",
+    "zodiac-pace-sfw",
+    "zodiac-mingw-powerup",
+    "zodiac-arm_android-sfw",
+    "zodiac-arm_android-chiclet",
+    "zodiac-arm_android-fwupd",
+    "zodiac-mediaroom-zebra",
+    "zodiac-pc_linux-metrological",
+]
+
 #######################################################################
 def get_run_params(run_url):
     params = urllib.parse.urlsplit(run_url)
@@ -62,13 +86,19 @@ def get_run_params(run_url):
 #######################################################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'Download builds from Jenkins to manipulate files on rootfs.')
-    parser.add_argument('-j', '--job',       action="store", type=int,  help='Jenkins job number')
-    parser.add_argument('-t', '--type',      action="store",            help='Jenkins job type'
-                                                                            , default='main'
-                                                                            , choices=['main', 'eng', 'cont'])
-    parser.add_argument(      '--user',       action="store",           help='Username')
-    parser.add_argument(      '--passwd',     action="store",           help='Password')
-    #parser.add_argument(      '--split',   action="store_true",         help='Split files by one level')
+    parser.add_argument('-j', '--job',           action="store",    help='Jenkins job number'
+                                                                        , type=int
+                                                                        , required=True)
+    parser.add_argument('-t', '--type',          action="store",    help='Jenkins job type'
+                                                                        , default='main'
+                                                                        , choices=['main', 'eng', 'cont'])
+    parser.add_argument('-c', '--build-config',  action="append",   help='Use selected build config(s) only')
+    parser.add_argument('-v', '--build-variant', action="append",   help='Use selected build-variant(s) only'
+                                                                        , choices=['dev', 'tst', 'prd'])
+    parser.add_argument(      '--user',          action="store",    help='Username')
+    parser.add_argument(      '--passwd',        action="store",    help='Password')
+    parser.add_argument('-o', '--output',        action="store",    help='Save downloaded files to OUTPUT'
+                                                                        , default='.')
     #parser.add_argument('-e', '--exclude', action="append",             help='Exclude file (w/o path) from search. Could be used multiple times')
     #parser.add_argument(      'infiles',                     nargs="+", help='Files/directories to process')
 
@@ -76,11 +106,12 @@ if __name__ == "__main__":
     #job = int(args.job)
     job = args.job
 
+    output = args.output
+
     #print(args)
 
     #urllib.parse.quote("znextgen/valhalla", safe='')
-    #url = "{}/{}/{}/{}".format(jenkins_server[args.type]['loc'], jenkins_server[args.type]['name'], job, 'api/json')
-    url = "{}/{}/{}/{}".format(jenkins_server[args.type].http, jenkins_server[args.type].name, job, 'api/json')
+    url = "{}/{}/{}/api/json".format(jenkins_server[args.type].http, jenkins_server[args.type].name, job)
     #print(url)
     print("Request build info ...")
     response = requests.get(url, auth=(args.user, args.passwd))
@@ -96,10 +127,26 @@ if __name__ == "__main__":
         #rn_url = "{}/artifact/output/ReleaseNotes_{}_{}-{}_{}.html".format(run['url'], jenkins_server[args.type].name, build_platform, build_type, job)
         #rn = response = requests.get(rn_url, auth=(args.user, args.passwd))
 
-        if build_platform != "charter-humaxwb20-powerup":
-            continue
+        if args.build_config:
+            if build_platform not in args.build_config:
+                continue
 
-        if build_type != "tst":
+        if args.build_variant:
+            if build_type not in args.build_variant:
+                continue
+
+        need_exclude = False
+        for suff in build_exclude_suffixes:
+            if build_platform.endswith(suff):
+                need_exclude = True
+                break
+        for cnf in build_excludes:
+            if cnf == build_platform:
+                need_exclude = True
+                break
+
+        if need_exclude:
+            print("Skip {} as it has no {}".format(build_platform, rootfs_zip_name_part))
             continue
 
         url = "{}/{}/{}/{}-{}".format(jenkins_server[args.type].ftp, jenkins_server[args.type].name, job, build_platform, build_type)
@@ -110,41 +157,52 @@ if __name__ == "__main__":
 
         ftp_list = []
         ftp.retrlines('NLST', ftp_list.append)
-        rootfs_zip_indices = [ i for i, s in enumerate(ftp_list) if 'rootfs.zip' in s ]
+        rootfs_zip_indices = [ i for i, s in enumerate(ftp_list) if rootfs_zip_name_part in s ]
         print("Found {} rootfs file(s):".format(len(rootfs_zip_indices)))
         for n in rootfs_zip_indices:
             print("  {}".format(ftp_list[n]))
-        assert len(rootfs_zip_indices) == 1, "I can handle excatly one rootfs.zip file"
 
-        rootfs_idx = rootfs_zip_indices[0]
-        rootfs_zip = ftp_list[rootfs_idx]
+        for rootfs_idx in rootfs_zip_indices:
 
-        subdir = os.path.join("{}-{}".format(jenkins_server[args.type].name, job), "{}-{}".format(build_platform, build_type))
-        localfile = os.path.join(subdir, rootfs_zip)
+            rootfs_zip = ftp_list[rootfs_idx]
 
-        if os.path.exists(subdir):
-            print("Remove target directory ...")
-            shutil.rmtree(subdir)
+            subdir = os.path.join(output, "{}-{}".format(jenkins_server[args.type].name, job), "{}-{}".format(build_platform, build_type))
+            rootfs_subdir = rootfs_zip[:len(rootfs_zip) - len(rootfs_zip_name_part)]
+            extract_dir = os.path.join(subdir, rootfs_subdir)
+            localfile = os.path.join(subdir, rootfs_zip)
+            #print(subdir)
+            #print(localfile)
+            #print(extract_dir)
+            #continue
 
-        print("Downloading {} to {} ...".format(rootfs_zip, subdir))
-        os.makedirs(subdir)
-        ftp.retrbinary('RETR ' + rootfs_zip, open(localfile, 'wb').write)
+            if os.path.exists(localfile):
+                print("Remove old target zip ...")
+                os.remove(localfile)
+            if os.path.exists(extract_dir):
+                print("Remove old target directory ...")
+                shutil.rmtree(extract_dir)
+
+            print("Downloading {} to {} ...".format(rootfs_zip, subdir))
+            os.makedirs(subdir, exist_ok=True)
+            os.makedirs(extract_dir, exist_ok=True)
+            ftp.retrbinary('RETR ' + rootfs_zip, open(localfile, 'wb').write)
+
+            # NOTE: The order is important!
+            supervisor_yaml = [
+                "etc/zodiac/configs/supervisor.yaml",
+                "home/zodiac/supervisor.yaml"
+            ]
+            print("Extracting supervisor.yaml ...")
+            with zipfile.ZipFile(localfile) as zip:
+                for sy_name in supervisor_yaml:
+                    supervisor_yaml_members = [ s for s in zip.namelist() if sy_name in s ]
+                    if len(supervisor_yaml_members) > 0:
+                        print("  found: {}".format(sy_name))
+                        break
+                zip.extractall(members=supervisor_yaml_members, path=extract_dir)
+
+            if os.path.exists(localfile):
+                print("Remove {} ...".format(rootfs_zip_name_part))
+                os.remove(localfile)
+
         ftp.close()
-
-        # NOTE: The order is important!
-        supervisor_yaml = [
-            "etc/zodiac/configs/supervisor.yaml",
-            "home/zodiac/supervisor.yaml"
-        ]
-        print("Extracting supervisor.yaml ...")
-        with zipfile.ZipFile(localfile) as zip:
-            for sy_name in supervisor_yaml:
-                supervisor_yaml_members = [ s for s in zip.namelist() if sy_name in s ]
-                if len(supervisor_yaml_members) > 0:
-                    print("  found: {}".format(sy_name))
-                    break
-            zip.extractall(members=supervisor_yaml_members, path=subdir)
-
-        if os.path.exists(localfile):
-            print("Remove rootfs.zip ...")
-            os.remove(localfile)
