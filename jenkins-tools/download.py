@@ -121,6 +121,9 @@ if __name__ == "__main__":
     parser.add_argument('-a', '--artifact',      action="store",    help='Jenkins artifact'
                                                                         , default='rootfs'
                                                                         , choices=['rootfs', 'nfs'])
+    parser.add_argument('-m', '--mode',          action="store",    help='Download mode. When extract - will exctract supervisor.yaml and delete downloaded rootfs.zip'
+                                                                        , default='extract'
+                                                                        , choices=['extract', 'download'])
     parser.add_argument(      '--user',          action="store",    help='Username')
     parser.add_argument(      '--passwd',        action="store",    help='Password')
     parser.add_argument('-o', '--output',        action="store",    help='Save downloaded files to OUTPUT'
@@ -204,31 +207,33 @@ if __name__ == "__main__":
             if os.path.exists(localfile):
                 print("Remove old target zip ...")
                 os.remove(localfile)
-            if os.path.exists(extract_dir):
-                print("Remove old target directory ...")
-                shutil.rmtree(extract_dir)
 
             print("Downloading {} to {} ...".format(rootfs_zip, subdir))
             os.makedirs(subdir, exist_ok=True)
-            os.makedirs(extract_dir, exist_ok=True)
             ftp.retrbinary('RETR ' + rootfs_zip, open(localfile, 'wb').write)
 
-            # NOTE: The order is important!
-            supervisor_yaml = [
-                "etc/zodiac/configs/supervisor.yaml",
-                "home/zodiac/supervisor.yaml"
-            ]
-            print("Extracting supervisor.yaml ...")
-            with zipfile.ZipFile(localfile) as zip:
-                for sy_name in supervisor_yaml:
-                    supervisor_yaml_members = [ s for s in zip.namelist() if sy_name in s ]
-                    if len(supervisor_yaml_members) > 0:
-                        print("  found: {}".format(sy_name))
-                        break
-                zip.extractall(members=supervisor_yaml_members, path=extract_dir)
+            if args.mode == 'exctract':
+                # NOTE: The order is important!
+                supervisor_yaml = [
+                    "etc/zodiac/configs/supervisor.yaml",
+                    "home/zodiac/supervisor.yaml"
+                ]
+                print("Extracting supervisor.yaml ...")
+                if os.path.exists(extract_dir):
+                    print("Remove old target directory ...")
+                    shutil.rmtree(extract_dir)
 
-            if os.path.exists(localfile):
-                print("Remove {} ...".format(rootfs_zip_name_part))
-                os.remove(localfile)
+                os.makedirs(extract_dir, exist_ok=True)
+                with zipfile.ZipFile(localfile) as zip:
+                    for sy_name in supervisor_yaml:
+                        supervisor_yaml_members = [ s for s in zip.namelist() if sy_name in s ]
+                        if len(supervisor_yaml_members) > 0:
+                            print("  found: {}".format(sy_name))
+                            break
+                    zip.extractall(members=supervisor_yaml_members, path=extract_dir)
+
+                if os.path.exists(localfile):
+                    print("Remove {} ...".format(rootfs_zip_name_part))
+                    os.remove(localfile)
 
         ftp.close()
