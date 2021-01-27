@@ -212,7 +212,7 @@ if __name__ == "__main__":
             os.makedirs(subdir, exist_ok=True)
             ftp.retrbinary('RETR ' + rootfs_zip, open(localfile, 'wb').write)
 
-            if args.mode == 'exctract':
+            if args.mode == 'extract':
                 # NOTE: The order is important!
                 supervisor_yaml = [
                     "etc/zodiac/configs/supervisor.yaml",
