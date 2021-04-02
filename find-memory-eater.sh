@@ -1,10 +1,11 @@
 #! /bin/bash
 
-# does not work as the sort field till the end of line
-exit 1
-
 while true ; do
+    echo ""
+    echo ""
     echo "### PS ###"
-    ps auxh | sort -g -r -k5 | head -n 10
+    ps -axh -o 'pid,vsz,rss,comm,args' | sort -g -r -k3,3 | head -n 3
+    echo ""
+    echo ""
     sleep 1
 done
