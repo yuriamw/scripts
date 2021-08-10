@@ -1,0 +1,5 @@
+https://confluence.developonbox.ru/pages/viewpage.action?pageId=78024133
+
+java -jar zdbDecoder.jar localization_en-US.zdb localization_en-US.xml
+
+java -jar zdbEncoder.jar localization_en-US.xml localization_en-US.zdb
