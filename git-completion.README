@@ -1,0 +1,15 @@
+GIT completion and SVN PS1 are included into GIT deb package and installed.
+SVN PS1 seems does not exists or buggy, provided localy.
+Need to add the following into .bashrc:
+--- CUT START ---
+# GIT completion/PS1
+[ -e /etc/bash_completion.d/git-prompt ] && . /etc/bash_completion.d/git-prompt
+[ -e /usr/share/bash-completion/completions/git ] && . /usr/share/bash-completion/completions/git
+[ -e ~/download/git-completion/svn-prompt ] && . ~/download/git-completion/svn-prompt
+--- CUT END ---
+
+To set PS1 the following shall be added at the end of PS1 env assignment:
+--- CUT START ---
+PS1=<some_code_already_was_here>$(__git_ps1)$(__dv_svn_ps1)<some_code_already_was_here>
+--- CUT END ---
+Output of both __git_ps1 and __dv_svn_ps1 functions start from space.
