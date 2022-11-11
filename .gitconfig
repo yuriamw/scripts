@@ -4,3 +4,5 @@
 	cleanex = clean -fdx -e native/SDK -e native/PLATFORM_SDK -e script/DOB2PE_SDK
 	lg = log --pretty=format:\"%C(auto)%h%d %C(bold)%C(magenta)%ci%Creset %al %C(cyan)%s%Creset\"
 	lgn = log --name-status
+[url "git@ssh.dev.azure.com:v3/eplandev/EPLAN%20Cloud/"]
+	insteadOf = https://eplan.cloud/
