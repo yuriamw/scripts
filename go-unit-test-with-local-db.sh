@@ -109,13 +109,14 @@ if [ ${#packages[@]} -eq 0 ]; then
     done
 fi
 
-[ "$1" = "--" ] && shift
+# [ "$1" = "--" ] && shift
 
 for package in ${packages[*]}; do
     echo "=== $package"
     pushd "packages/${package}" > /dev/null
         f="$(basename $(pwd))"
-        go test --cover -coverprofile ${covoutput}/${f}-cover.out $@
-        go tool cover -html=${covoutput}/${f}-cover.out -o ${covoutput}/${f}-coverage.html
+        go-unit-test-with-coverage.sh -o ${covoutput}/${f}-cover.out $@
+#         go test --cover -coverprofile ${covoutput}/${f}-cover.out $@
+#         go tool cover -html=${covoutput}/${f}-cover.out -o ${covoutput}/${f}-coverage.html
     popd > /dev/null
 done
