@@ -67,7 +67,5 @@ coverouthtml="${coverout}.html"
 
 [ "$1" = "--" ] && shift
 
-set -x
-
 go test --cover -coverprofile ${coverout} $@
 go tool cover -html=${coverout} -o ${coverouthtml}
