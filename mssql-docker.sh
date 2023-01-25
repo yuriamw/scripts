@@ -3,8 +3,7 @@
 HOST_DATADIR="/home/hdd/mssql/data"
 VOLUME_MOUNT="-v ${HOST_DATADIR}:/var/opt/mssql"
 
-# PASSWD='ThisIs!Password'
-PASSWD='PassW0rd!4MSSQL'
+PASSWD='ThisIs!Password'
 
 IMAGE_NAME="mcr.microsoft.com/mssql/server:latest"
 
