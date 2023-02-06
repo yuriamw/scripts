@@ -102,19 +102,30 @@ while [ -n "$1" ]; do
 done
 
 if [ ${#packages[@]} -eq 0 ]; then
-    for i in $(find "${dir}" -name go.mod -type f)
-    do
-        idx=${#packages[*]}
-        packages[$idx]=$(basename $(dirname $i))
-    done
+    pushd "${dir}/${package}" > /dev/null
+      for i in $(find . -name go.mod -type f)
+      do
+          idx=${#packages[*]}
+          p=$(dirname "${i##./}")
+          packages[$idx]="${p}"
+      done
+    popd > /dev/null
 fi
+
+# for package in ${packages[*]}; do
+#   echo "${package}"
+#   f="$(dirname ${package})"
+#   echo "${package////-}"
+#   echo $f
+# done
+# exit
 
 # [ "$1" = "--" ] && shift
 
 for package in ${packages[*]}; do
     echo "=== $package"
-    pushd "packages/${package}" > /dev/null
-        f="$(basename $(pwd))"
+    pushd "${dir}/${package}" > /dev/null
+        f="${package////-}"
         go-unit-test-with-coverage.sh -o ${covoutput}/${f}-cover.out $@
 #         go test --cover -coverprofile ${covoutput}/${f}-cover.out $@
 #         go tool cover -html=${covoutput}/${f}-cover.out -o ${covoutput}/${f}-coverage.html
