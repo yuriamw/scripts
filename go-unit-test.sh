@@ -3,7 +3,8 @@
 # -p pkg -- --run ^MyTestSuite$ -testify.m ^TestItems
 
 covoutput="$(realpath $PWD/../../../coverage)"
-dir="packages"
+shortdir="pkg"
+longdir="packages"
 declare -a packages
 packages=()
 
@@ -77,30 +78,31 @@ while [ -n "$1" ]; do
   shift
 done
 
+pkgdir=${shortdir}
+if [ ! -d "${pkgdir}" ]; then
+    pkgdir=${longdir}
+    if [ ! -d "${pkgdir}" ]; then
+        echo "FATAL: neither ${shortdir} not ${longdir} directory found - abort"
+        exit 1
+    fi
+fi
+
 if [ ${#packages[@]} -eq 0 ]; then
-    pushd "${dir}/${package}" > /dev/null
-      for i in $(find . -name go.mod -type f)
+    pushd "${pkgdir}" > /dev/null
+      for i in $(find . -name *_test.go -type f -exec dirname {} \; | sort | uniq)
       do
           idx=${#packages[*]}
-          p=$(dirname "${i##./}")
+          p="${i##./}"
           packages[$idx]="${p}"
       done
     popd > /dev/null
 fi
 
-# for package in ${packages[*]}; do
-#   echo "${package}"
-#   f="$(dirname ${package})"
-#   echo "${package////-}"
-#   echo $f
-# done
-# exit
-
 # [ "$1" = "--" ] && shift
 
 for package in ${packages[*]}; do
     echo "=== $package"
-    pushd "${dir}/${package}" > /dev/null
+    pushd "${pkgdir}/${package}" > /dev/null
         f="${package////-}"
         go-unit-test-with-coverage.sh -o ${covoutput}/${f}-cover.out $@
     popd > /dev/null
