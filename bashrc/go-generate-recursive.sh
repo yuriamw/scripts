@@ -8,6 +8,6 @@ function go-generate-recursive {
     do
         d="$(dirname $i)"
         echo "=== run go generate in: $d"
-        (cd $d && go generate -x)
+        (cd $d && go generate -x ./...)
     done
 }
