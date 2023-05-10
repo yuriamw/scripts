@@ -8,6 +8,15 @@ longdir="packages"
 declare -a packages
 packages=()
 
+pkgdir=${shortdir}
+if [ ! -d "${pkgdir}" ]; then
+    pkgdir=${longdir}
+    if [ ! -d "${pkgdir}" ]; then
+        echo "FATAL: neither ${shortdir} not ${longdir} directory found - abort"
+        exit 1
+    fi
+fi
+
 usage()
 {
   echo "Usage: $(basename $0) [OPTIONS]"
@@ -60,8 +69,19 @@ while [ -n "$1" ]; do
     ;;
     -p|--package)
       shift
+      p="$1"
+      case "$p" in
+        ./*)
+          p="${p#./}"
+        ;;
+      esac
+      case "$p" in
+        ${pkgdir}/*)
+          p=${p#"$pkgdir/"}
+        ;;
+      esac
       num=${#packages[*]}
-      packages[$num]="$1"
+      packages[$num]="$p"
     ;;
     -c|--coverage)
       shift
@@ -77,15 +97,6 @@ while [ -n "$1" ]; do
   esac
   shift
 done
-
-pkgdir=${shortdir}
-if [ ! -d "${pkgdir}" ]; then
-    pkgdir=${longdir}
-    if [ ! -d "${pkgdir}" ]; then
-        echo "FATAL: neither ${shortdir} not ${longdir} directory found - abort"
-        exit 1
-    fi
-fi
 
 if [ ${#packages[@]} -eq 0 ]; then
     pushd "${pkgdir}" > /dev/null
