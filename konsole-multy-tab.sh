@@ -1,9 +1,8 @@
 #! /bin/bash
 
 dir="$1"
-upperdir="../../${dir}"
+upperdir="$(realpath ${dir}/../..)"
 tmp="/tmp/konsole.tabs"
-trap 'rm -f -- "${tmp}"' EXIT
 
 cat << EOF > "${tmp}"
 title: %d : %n;; workdir: ${upperdir};; profile: Profile 1
