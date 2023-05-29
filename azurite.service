@@ -1,0 +1,12 @@
+[Unit]
+Description=Azurite storage emulator
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=1
+Restart=On-Error
+ExecStart=/home/io/devel/scripts/azurite-docker-service.sh
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,12 @@
+[Unit]
+Description=MS SQL server
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=1
+Restart=On-Error
+ExecStart=/home/io/devel/scripts/mssql-docker-service.sh
+
+[Install]
+WantedBy=default.target
