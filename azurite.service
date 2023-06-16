@@ -7,6 +7,7 @@ Requires=docker.service
 TimeoutStartSec=1
 Restart=On-Error
 ExecStart=/home/io/devel/scripts/azurite-docker-service.sh
+ExecStop=/usr/bin/docker stop -t 2 azurite
 
 [Install]
 WantedBy=default.target
