@@ -17,7 +17,7 @@ for r in CS23-*; do
     for t in ${secrets[@]}; do
         pushd $r >/dev/null
 
-        branches=( $(git branch -la | sed -n -e 's/remotes\///p' | sed -e 's/.*HEAD.*//') )
+        branches=( $(git branch -lr | sed -e '/.*HEAD.*/d') )
 
         br=$(jq -n '[]')
         for b in ${branches[@]}; do
