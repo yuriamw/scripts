@@ -9,7 +9,7 @@ usage()
 {
     echo "Usage: $(basename $0) [OPTIONS] [DIR1] [DIR2] [...]"
     echo "    Search for terms in git local copies recurcievely:"
-    echo "    [DIR1] [DIR2] [...] is a list of directoryes with git local copies."
+    echo "    [DIR1] [DIR2] [...] is a list of directories with git local copies."
     echo "    If list of directories is omited then curren directory is used."
     echo "    Options:"
     echo "        -h,--help"
