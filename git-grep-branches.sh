@@ -2,6 +2,7 @@
 
 searchterms=()
 searchdirs=()
+filepatterns=()
 
 exec 3>&1
 
@@ -21,12 +22,18 @@ usage()
     echo "            Read search terms from FILE."
     echo "            File shall contains the one term per line."
     echo "            Could be used multiple times."
+    echo "        -x PATTERN,--exclude=PATTERN"
+    echo "            Exclude file pattern from search."
+    echo "            Example:"
+    echo "              -x ':!/*/client_config/*'"
+    echo "            exclude files in client_config directory."
+    echo "            Could be used multiple times."
     echo "        -o OUTPUT,--output=OUTPUT"
     echo "            Put the output to file OUTPUT. Default is stdout."
 }
 
-SHORT_OPTS="hs:f:o:"
-LONG_OPTS="help,search:,file:,output:"
+SHORT_OPTS="hs:f:x:o:"
+LONG_OPTS="help,search:,file:,exclude:,output:"
 
 OPTIONS_LIST=$(getopt -n $(basename $0) -o "$SHORT_OPTS" -l "$LONG_OPTS" -- "$@")
 [ $? -eq 0 ] || exit 1
@@ -51,6 +58,10 @@ while [ -n "$1" ]; do
                 searchterms=( "${searchterms[@]}"  "${line}")
             done < "$1"
             IFS="${old}"
+        ;;
+        -x|--exclude)
+            shift
+            filepatterns=( "${filepatterns[@]}"  "$1")
         ;;
         -d|--dir)
             shift
@@ -78,6 +89,9 @@ while [ $# -gt 0 ]; do
 done
 [ ${#searchdirs[@]} -eq 0 ] && searchdirs=("${searchdirs[@]}" "." )
 
+gitfilepattern=
+[ ${#filepatterns[@]} -gt 0 ] && gitfilepattern="-- ${filepatterns[@]}"
+
 collection=$(jq -n)
 
 for r in ${searchdirs[@]}; do
@@ -90,7 +104,7 @@ for r in ${searchdirs[@]}; do
 
         br=$(jq -n '[]')
         for b in ${branches[@]}; do
-            f=$(git grep -na "${t}" "$b"  | cut -f'-3' -d':')
+            f=$(git grep -na "${t}" "$b" ${gitfilepattern} | cut -f'-3' -d':')
             if [ -z "$f" ]; then
                 continue
             fi
