@@ -1,6 +1,6 @@
 #! /bin/bash -x
 
-tag="${1:-2.1.6}"
+tag="${1:-2.2.8}"
 
 # az acr repository show-tags -n secopscommondevacr --repository eplan/apim-template-generator
 
