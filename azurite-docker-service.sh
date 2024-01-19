@@ -1,6 +1,6 @@
 #! /bin/bash
 
-HOST_DATADIR="/home/hdd/azurite/data"
+HOST_DATADIR="/var/opt/azurite"
 VOLUME_MOUNT="-v ${HOST_DATADIR}:/data"
 
 # https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=docker-hub#well-known-storage-account-and-key

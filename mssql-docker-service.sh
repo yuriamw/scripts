@@ -1,6 +1,6 @@
 #! /bin/bash
 
-HOST_DATADIR="/home/hdd/mssql/data"
+HOST_DATADIR="/var/opt/mssql"
 VOLUME_MOUNT="-v ${HOST_DATADIR}:/var/opt/mssql"
 
 PASSWD='ThisIs!Password'
