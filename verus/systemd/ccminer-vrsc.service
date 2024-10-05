@@ -1,0 +1,13 @@
+[Unit]
+Description=Verus coin miner
+After=network.target
+Requires=network.target
+
+[Service]
+TimeoutStartSec=1
+Restart=On-Error
+ExecStart=/home/x96/verus/systemd/ccminer-service.sh
+# ExecStop=/usr/bin/docker stop -t 2 azurite
+
+[Install]
+WantedBy=default.target
