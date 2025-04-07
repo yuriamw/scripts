@@ -10,7 +10,7 @@ function git-config-dtp()
 function git-config-eplan()
 {
     git config user.name 'Iurii Ovcharenko'
-    git config user.email 'Ovcharenko.I@eplan.de'
+    git config user.email 'Ovcharenko.I@eplan.pl'
 }
 
 function git-config-amw()
