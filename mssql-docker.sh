@@ -10,6 +10,7 @@ PASSWD='ThisIs!Password'
 IMAGE_NAME="cs23devacr.azurecr.io/eplan/infrastructure/mssqltestserver:v6"
 
 docker run -ti --rm -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=${PASSWD}" \
+    --cpuset-cpus="0,1" \
     -p 1433:1433 \
     --name mssql \
     --entrypoint ${ENTRYPOINT} \
