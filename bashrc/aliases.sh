@@ -7,3 +7,4 @@ alias git='LANG=C git'
 alias make='LANG=C make'
 alias gcc='LANG=C gcc'
 alias g++='LANG=C g++'
+alias docker=podman
