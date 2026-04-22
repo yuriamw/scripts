@@ -9,8 +9,8 @@ PASSWD='ThisIs!Password'
 
 IMAGE_NAME="cs23devacr.azurecr.io/eplan/infrastructure/mssqltestserver:v6"
 
-docker stop ${IMAGE_NAME}
-docker rm ${IMAGE_NAME}
+# podman stop ${IMAGE_NAME}
+# podman rm ${IMAGE_NAME}
 
 docker run --rm -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=${PASSWD}" \
     --cpuset-cpus="0,1" \
