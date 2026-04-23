@@ -16,13 +16,12 @@ TimeoutStopSec=70
 ExecStart=/usr/bin/podman run \
 	--cidfile=%t/%n.ctr-id \
 	--cgroups=no-conmon \
-	--rm \
 	--sdnotify=conmon \
 	--replace \
 	-dt \
 	--name postgres-for-user \
 	-e POSTGRES_PASSWORD=postgres \
-	-v local-postgres-user:/var/lib/postgresql:Z \
+	-v postgres-user-data:/var/lib/postgresql/data:Z \
 	-p 5433:5432 docker.io/library/postgres:17.9-alpine
 ExecStop=/usr/bin/podman stop \
 	--ignore -t 10 \
